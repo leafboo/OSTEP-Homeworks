@@ -1,0 +1,32 @@
+Questions:
+1. Write a program that calls fork(). Before calling fork(), have the
+main process access a variable (e.g., x) and set its value to something (e.g., 100). What value is the variable in the child process?
+What happens to the variable when both the child and parent change
+the value of x?
+- The value in the child process is the same as the one in the parent process because calling fork() clones the parent process' initial state but with different address
+- Since the initialized state of the child process is the same as the parent process but with different address, changing the value in one process is isolated in that process only 
+
+2. Write a program that opens a file (with the open() system call)
+and then calls fork() to create a new process. Can both the child
+and parent access the file descriptor returned by open()? What
+happens when they are writing to the file concurrently, i.e., at the
+same time?
+- Both the parent and the child can access the fd returned by calling open() and both of them also share the file offset.
+- Both processes can write to the same fd concurrently but the order of execution is unpredictable
+
+3. Write another program using fork(). The child process should
+print “hello”; the parent process should print “goodbye”. You should
+try to ensure that the child process always prints first; can you do
+this without calling wait() in the parent?
+- Yes, by using the pipe() system call. A pipe has two file descriptors: one for read and one for write. In the parent process, before printing the message, we call the read()
+function and pass the read fd so that it will wait for the write() to the pipe, turning it to a blocking call. Then in the child process we print the message and call the 
+write() function and pass the write fd. Doing this will ensure that the message in the child process will always print first.
+
+4. Write a program that calls fork() and then calls some form of
+exec() to run the program /bin/ls. See if you can try all of the
+variants of exec(), including execl(), execle(), execlp(),
+execv(), execvp(), and execvP(). Why do you think there
+are so many variants of the same basic call?
+5. Now write a program that uses wait() to wait for the child process
+to finish in the parent. What does wait() return? What happens if
+you use wait() in the child?
