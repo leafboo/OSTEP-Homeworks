@@ -12,11 +12,12 @@
 int question_one();
 int question_two();
 int question_three();
+int question_four();
 char *safe_malloc(size_t);
 
 int 
 main(int argc, char *argv[]) {
-    question_three();
+    question_four();
     return 0;
 }
 
@@ -104,6 +105,24 @@ question_three() {
 	char c;
 	read(pipe_fd[0], &c, 1);
 	printf("goodbye\n");
+    }
+    return 0;
+}
+
+int 
+question_four() {
+    int fd = fork();
+
+    if (fd < 0) {
+	perror("fork()");
+	exit(EXIT_FAILURE);
+    } else if (fd == 0) {
+	char *envp[] = {"LS_COLORS=di=33:ln=35:ex=31", NULL};
+	// execl("/bin/ls", "ls", "--color=always", "-la" , NULL);
+	execle("/bin/ls", "ls", "--color=auto", "-la", NULL, envp);
+	exit(EXIT_SUCCESS);
+    } else {
+	wait(NULL);
     }
     return 0;
 }
