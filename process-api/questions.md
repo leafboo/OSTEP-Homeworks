@@ -27,6 +27,26 @@ exec() to run the program /bin/ls. See if you can try all of the
 variants of exec(), including execl(), execle(), execlp(),
 execv(), execvp(), and execvP(). Why do you think there
 are so many variants of the same basic call?
+- The reason for so many variants of the exec() system call is that overtime, they needed new functionality to go along with it. So instead of depracating the older function
+and create a new one that would cater all the functions, they decided to separate them because in doing so, it wouldn't break the codebase of so many people that already use 
+the basic function.
+
 5. Now write a program that uses wait() to wait for the child process
 to finish in the parent. What does wait() return? What happens if
 you use wait() in the child?
+- The wait returns the PID of the child process on success and -1 on failure. Calling wait in the child process will result in wait() returning -1 because there is no child process 
+created there
+
+6. Write a slight modification of the previous program, this time us-
+ing waitpid() instead of wait(). When would waitpid() be
+useful?
+- waitpid() is useful for when waiting a specific child process to die
+
+7. Write a program that creates a child process, and then in the child
+closes standard output (STDOUT FILENO). What happens if the child
+calls printf() to print some output after closing the descriptor?
+- If we execute printf() after closing the fd of the STDOUT, printf() will have nowhere to put its output.
+
+8. Write a program that creates two children, and connects the stan-
+dard output of one to the standard input of the other, using the
+pipe() system call.

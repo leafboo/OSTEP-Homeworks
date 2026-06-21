@@ -13,11 +13,14 @@ int question_one();
 int question_two();
 int question_three();
 int question_four();
+int question_five();
+int question_six();
+int question_seven();
 char *safe_malloc(size_t);
 
 int 
 main(int argc, char *argv[]) {
-    question_four();
+    question_seven();
     return 0;
 }
 
@@ -117,12 +120,94 @@ question_four() {
 	perror("fork()");
 	exit(EXIT_FAILURE);
     } else if (fd == 0) {
+	// NOTE: 
+	// l = args in list ("", "", "", NULL)
+	// v = args in vector/array {"", "", "", NULL}
+	// e = environment variable can be passed
+	// p = in the first argument, it allows you to pass the file name and it will look for the PATH variables if the command is in the specified directories, and executes it
+	// P = also looks for the files but instead of looking in the PATH variable, you get to specify the paths that you want to search for the executable
+	
 	char *envp[] = {"LS_COLORS=di=33:ln=35:ex=31", NULL};
+	char *argv[] = {"ls", "--color=always", "-la" , NULL};
 	// execl("/bin/ls", "ls", "--color=always", "-la" , NULL);
-	execle("/bin/ls", "ls", "--color=auto", "-la", NULL, envp);
+	// execle("/bin/ls", "ls", "--color=auto", "-la", NULL, envp);
+	// execlp("ls", "ls", "--color=always", "-la" , NULL);
+	// execv("/bin/ls", argv);
+	execvp("ls", argv);
+	// execvP("ls", "/path:/separated/by:/column", argv);
+	
 	exit(EXIT_SUCCESS);
     } else {
 	wait(NULL);
+    }
+    return 0;
+}
+
+int 
+question_five() {
+    int fd = fork();
+    
+    if (fd < 0) {
+	perror("fork()");
+	exit(EXIT_FAILURE);
+    } else if (fd == 0) {
+	printf("Hello\n");
+	// pid_t child_pid = wait(NULL);
+	// printf("%d\n", child_pid);
+	exit(EXIT_SUCCESS);
+    } else {
+	pid_t child_pid = wait(NULL);
+	printf("%d\n", child_pid);
+    }
+    return 0;
+}
+
+int 
+question_six() {
+    int fd = fork();
+    
+    if (fd < 0) {
+	perror("fork()");
+	exit(EXIT_FAILURE);
+    } else if (fd == 0) {
+	printf("Hello\n");
+	exit(EXIT_SUCCESS);
+    } else {
+	int dead_child_pid;
+	pid_t pid = waitpid(fd, &dead_child_pid, 0);
+	printf("pid of the dead child process: %d\n", pid);
+	printf("status of the dead child process: %d\n", dead_child_pid);
+    }
+    return 0;
+}
+
+int 
+question_seven() {
+    int pipefd[2];
+    int fd;
+
+    if (pipe(pipefd) < 0) {
+	perror("pipe()");
+	exit(EXIT_SUCCESS);
+    }
+    if ((fd = fork()) < 0) {
+	perror("fork()");
+	exit(EXIT_FAILURE);
+    } else if (fd == 0) {
+	close(pipefd[0]);
+	dup2(pipefd[1], STDOUT_FILENO);
+	printf("Hello world");
+	fflush(stdout); // probably not needed since the stdout buffer gets flushed when the process exits
+	exit(EXIT_SUCCESS);
+    } else {
+	char *argv[] = {"wc", NULL};
+	char *message = malloc(1024);
+
+	close(pipefd[1]);
+	ssize_t message_bytes = read(pipefd[0], message, 11);	
+	message[message_bytes] = '\0';
+	printf("message: %s", message);
+	fflush(stdout); // prob not needed
     }
     return 0;
 }
