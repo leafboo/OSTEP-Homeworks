@@ -16,11 +16,13 @@ int question_four();
 int question_five();
 int question_six();
 int question_seven();
+int question_eight();
+int safe_dup2(int old_fd, int new_fd);
 char *safe_malloc(size_t);
 
 int 
 main(int argc, char *argv[]) {
-    question_seven();
+    question_eight();
     return 0;
 }
 
@@ -212,6 +214,46 @@ question_seven() {
     return 0;
 }
 
+int 
+question_eight() {
+    int fd_1, fd_2;
+
+    if ((fd_1 = fork()) < 0) {
+	perror("fork()");
+	exit(EXIT_FAILURE);
+    } else if (fd_1 == 0) { // child 1
+	int pipefd[2];
+
+	if (pipe(pipefd) < 0) {
+	    perror("pipe()");
+	    exit(EXIT_FAILURE);
+	}
+	if ((fd_2 = fork()) < 0) {
+	    perror("fork()");
+	    exit(EXIT_FAILURE);
+	} else if (fd_2 == 0) { // child 2 / child of child 1
+	    close(pipefd[0]);
+	    safe_dup2(pipefd[1], STDOUT_FILENO);
+	    close(pipefd[1]);
+	    printf("hello from child 2");
+	    fflush(stdout);
+	    exit(EXIT_SUCCESS);
+	} else { // child 1 / parent of child 2
+	    wait(NULL);
+	    close(pipefd[1]);
+	    safe_dup2(pipefd[0], STDIN_FILENO);
+	    close(pipefd[0]);
+	    if (execlp("wc", "wc", NULL) == -1) {
+		perror("execlp()");
+		close(EXIT_FAILURE);
+	    }
+	}
+    } else {
+	wait(NULL);
+    }
+    return 0;
+}
+
 char *
 safe_malloc(size_t size) {
     char *buffer = malloc(size);
@@ -220,4 +262,14 @@ safe_malloc(size_t size) {
 	exit(EXIT_FAILURE);
     }
     return buffer;
+}
+
+int
+safe_dup2(int old_fd, int new_fd) {
+    int fd;
+    if ((fd = dup2(old_fd, new_fd)) < 0) {
+	perror("dup2()");
+	exit(EXIT_FAILURE);
+    }
+    return fd;
 }
